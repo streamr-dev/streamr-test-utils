@@ -111,6 +111,37 @@ describe(waitForCondition, () => {
             done()
         })
     })
+
+    it('promise resolve at first invocation', async () => {
+        const fn = jest.fn().mockResolvedValue(true)
+        await waitForCondition(fn)
+        expect(fn).toBeCalledTimes(1)
+    })
+
+    it('promise resolve at later invocation', async () => {
+        const fn = jest.fn()
+            .mockResolvedValueOnce(false)
+            .mockResolvedValueOnce(true)
+        await waitForCondition(fn)
+        expect(fn).toBeCalledTimes(2)
+    })
+
+    it('promise reject at first invocation', async () => {
+        const error = new Error('mock')
+        await expect(waitForCondition(() => Promise.reject(error))).rejects.toThrow(error);
+    })
+
+    it('promise reject at later invocation', async () => {
+        const error = new Error('mock')
+        const fn = jest.fn()
+            .mockResolvedValueOnce(false)
+            .mockRejectedValueOnce(error)
+        await expect(waitForCondition(fn)).rejects.toThrow(error);
+    })
+
+    it('reject if promise timeouts', async () => {
+        await expect(waitForCondition(() => new Promise(() => {}), 100, 10)).rejects.toThrow();
+    })
 })
 
 describe(wait, () => {
