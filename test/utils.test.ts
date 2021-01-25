@@ -85,21 +85,56 @@ describe(waitForEvent, () => {
 })
 
 describe(waitForCondition, () => {
-    it('resolves immediately if poll callback returns true from the get-go', (done) => {
-        waitForCondition(() => true).then(done)
+    describe('given conditionFn that returns boolean primitives', () => {
+        it('resolves immediately if conditionFn returns true from the get-go', (done) => {
+            waitForCondition(() => true).then(done)
+        })
+
+        it('resolves eventually when conditionFn returns true', (done) => {
+            let cbReturnValue = false
+            setTimeout(() => cbReturnValue = true, 50)
+            waitForCondition(() => cbReturnValue, 5000, 10).then(done)
+        })
+
+        it('rejects if conditionFn does not return true within timeout', (done) => {
+            const pollCb = () => false
+            waitForCondition(pollCb, 50, 5).catch((err) => {
+                expect(err.message).toEqual("waitForCondition: timed out before \"() => false\" became true")
+                done()
+            })
+        })
     })
 
-    it('resolves eventually when poll callback returns true', (done) => {
-        let cbReturnValue = false
-        setTimeout(() => cbReturnValue = true, 50)
-        waitForCondition(() => cbReturnValue, 5000, 10).then(done)
-    })
+    describe('given conditionFn that returns promisified booleans (i.e. Promise<boolean>)', () => {
+        it('resolves immediately if conditionFn returns (promisified) true from the get-go', async () => {
+            const fn = jest.fn().mockResolvedValue(true)
+            await waitForCondition(fn)
+            expect(fn).toBeCalledTimes(1)
+        })
 
-    it('rejects if poll callback does not return true within timeout', (done) => {
-        const pollCb = () => false
-        waitForCondition(pollCb, 50, 5).catch((err) => {
-            expect(err.message).toEqual("waitForCondition: timed out before \"() => false\" became true")
-            done()
+        it('resolves eventually when conditionFn returns (promisified) true', async () => {
+            const fn = jest.fn()
+                .mockResolvedValueOnce(false)
+                .mockResolvedValueOnce(true)
+            await waitForCondition(fn)
+            expect(fn).toBeCalledTimes(2)
+        })
+
+        it('rejects immediately if conditionFn returns rejected promise from the get-go', async () => {
+            const error = new Error('mock')
+            await expect(waitForCondition(() => Promise.reject(error))).rejects.toThrow(error);
+        })
+
+        it('rejects eventually if conditionFn returns rejected promise and no (promisifed) true was encountered', async () => {
+            const error = new Error('mock')
+            const fn = jest.fn()
+                .mockResolvedValueOnce(false)
+                .mockRejectedValueOnce(error)
+            await expect(waitForCondition(fn)).rejects.toThrow(error);
+        })
+
+        it('rejects if conditionFn returns promise that does not settle within timeout', async () => {
+            await expect(waitForCondition(() => new Promise(() => {}), 100, 10)).rejects.toThrow();
         })
     })
 
@@ -110,37 +145,6 @@ describe(waitForCondition, () => {
                 "\na was 5, expected 10")
             done()
         })
-    })
-
-    it('promise resolve at first invocation', async () => {
-        const fn = jest.fn().mockResolvedValue(true)
-        await waitForCondition(fn)
-        expect(fn).toBeCalledTimes(1)
-    })
-
-    it('promise resolve at later invocation', async () => {
-        const fn = jest.fn()
-            .mockResolvedValueOnce(false)
-            .mockResolvedValueOnce(true)
-        await waitForCondition(fn)
-        expect(fn).toBeCalledTimes(2)
-    })
-
-    it('promise reject at first invocation', async () => {
-        const error = new Error('mock')
-        await expect(waitForCondition(() => Promise.reject(error))).rejects.toThrow(error);
-    })
-
-    it('promise reject at later invocation', async () => {
-        const error = new Error('mock')
-        const fn = jest.fn()
-            .mockResolvedValueOnce(false)
-            .mockRejectedValueOnce(error)
-        await expect(waitForCondition(fn)).rejects.toThrow(error);
-    })
-
-    it('reject if promise timeouts', async () => {
-        await expect(waitForCondition(() => new Promise(() => {}), 100, 10)).rejects.toThrow();
     })
 })
 
