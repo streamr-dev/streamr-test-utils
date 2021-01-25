@@ -49,7 +49,7 @@ export const waitForEvent = (emitter: EventEmitter, event: Event, timeout = 5000
 /**
  * Wait for a condition to become true by re-evaluating every `retryInterval` milliseconds.
  *
- * @param conditionFn condition to be evaluated; should return boolean and have
+ * @param conditionFn condition to be evaluated; should return boolean or Promise<boolean> and have
  * no side-effects.
  * @param timeout amount of time in milliseconds to wait for
  * @param retryInterval how often, in milliseconds, to re-evaluate condition
