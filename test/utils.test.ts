@@ -120,6 +120,12 @@ describe(waitForCondition, () => {
             expect(fn).toBeCalledTimes(2)
         })
 
+        it('rejects if conditionFn keeps returning (promisified) false within timeout', async () => {
+            const fn = () => Promise.resolve(false)
+            await expect(waitForCondition(fn, 50, 10)).rejects
+                .toThrow("waitForCondition: timed out before \"() => Promise.resolve(false)\" became true")
+        })
+
         it('rejects immediately if conditionFn returns rejected promise from the get-go', async () => {
             const error = new Error('mock')
             await expect(waitForCondition(() => Promise.reject(error))).rejects.toThrow(error);
