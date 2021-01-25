@@ -128,7 +128,7 @@ describe(waitForCondition, () => {
 
         it('rejects immediately if conditionFn returns rejected promise from the get-go', async () => {
             const error = new Error('mock')
-            await expect(waitForCondition(() => Promise.reject(error))).rejects.toThrow(error);
+            await expect(waitForCondition(() => Promise.reject(error))).rejects.toThrow(error)
         })
 
         it('rejects eventually if conditionFn returns rejected promise and no (promisifed) true was encountered', async () => {
@@ -136,11 +136,11 @@ describe(waitForCondition, () => {
             const fn = jest.fn()
                 .mockResolvedValueOnce(false)
                 .mockRejectedValueOnce(error)
-            await expect(waitForCondition(fn)).rejects.toThrow(error);
+            await expect(waitForCondition(fn)).rejects.toThrow(error)
         })
 
         it('rejects if conditionFn returns promise that does not settle within timeout', async () => {
-            await expect(waitForCondition(() => new Promise(() => {}), 100, 10)).rejects.toThrow();
+            await expect(waitForCondition(() => new Promise(() => {}), 100, 10)).rejects.toThrow()
         })
     })
 
