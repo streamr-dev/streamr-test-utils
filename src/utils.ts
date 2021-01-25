@@ -95,7 +95,7 @@ export const waitForCondition = async (
         }
         setImmediate(poll)
         poller = setInterval(poll, retryInterval)
-    });
+    })
 }
 
 /**
