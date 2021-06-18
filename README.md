@@ -1,3 +1,5 @@
+# NOTICE! This repository has been moved under [network monorepo](https://github.com/streamr-dev/network-monorepo)
+
 # streamr-test-utils
 A collection of Node.js utilities for dealing with asynchronous behavior in jest/mocha tests.
 
